@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhruv Watches Stuff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Mono:wght@400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     BROWSE OVERLAY -- shown when "All Shows" is clicked
+     ============================================================ -->
+<div id="browse" class="browse" hidden>
+  <div class="browse-header">
+    <div class="browse-header-left">
+      <span class="browse-heading">All Shows</span>
+      <span id="browse-count" class="browse-count"></span>
+    </div>
+    <button class="browse-close" onclick="closeBrowse()" aria-label="Close">&#x2715;</button>
+  </div>
+  <div class="browse-body">
+    <p id="browse-note" class="browse-note"></p>
+    <div id="browse-grid" class="browse-grid"></div>
+  </div>
+</div>
+
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Dhruv Watches Stuff</div>
+  <ul class="nav-links">
+    <li><button class="nav-btn" onclick="openBrowse()">All Shows</button></li>
+    <li><a href="#episodes">Episodes</a></li>
+    <li><a href="#about-footer">About</a></li>
+  </ul>
+</nav>
+
+
+<!-- HERO / CURTAIN -->
+<div class="curtain">
+  <div class="hero">
+    <div class="live-badge"><span class="live-dot"></span>On Air</div>
+    <p class="hero-eyebrow" id="hero-eyebrow">The Late Night Review Show Nobody Asked For</p>
+    <h1 class="hero-title">
+      <span class="hero-name-script">Dhruv</span>
+      <span class="hero-verb">Watches</span>
+      <span class="hero-obj">Stuff<span class="hero-you-too">and you too.</span></span>
+    </h1>
+    <p class="hero-question">
+      <strong>What is Dhruv watching?</strong>
+      <span id="hero-answer">Great question. No one knows.</span>
+    </p>
+    <p class="hero-tagline">So you don't have to &nbsp;·&nbsp; Est. When He Got Too Opinionated</p>
+    <p class="dhruv-status" id="dhruv-status"></p>
+  </div>
+</div>
+
+
+<!-- TICKER -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-inner">
+    <span class="ticker-item">Dhruv Watches Stuff</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">So You Don't Have To</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">What Is Dhruv Watching?</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">Opinions Are Free. You're Welcome.</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">No Critics Were Consulted</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">New Reviews Whenever Dhruv Finishes An Episode</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">Dhruv Watches Stuff</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">So You Don't Have To</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">What Is Dhruv Watching?</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">Opinions Are Free. You're Welcome.</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">No Critics Were Consulted</span><span class="ticker-sep">&#9670;</span>
+    <span class="ticker-item">New Reviews Whenever Dhruv Finishes An Episode</span><span class="ticker-sep">&#9670;</span>
+  </div>
+</div>
+
+
+<!-- NOW WATCHING STRIP -- filled by JS -->
+<div id="now-watching" class="now-watching"></div>
+
+
+<!-- MAIN CONTENT -- filled by JS -->
+<main class="content" id="main-content" id="episodes"></main>
+
+
+<!-- CTA -- filled by JS -->
+<div id="cta-section" class="cta"></div>
+
+
+<!-- SITE FOOTER -->
+<footer class="site-footer" id="about-footer">
+  <p>Dhruv Watches Stuff &nbsp;·&nbsp; All opinions are Dhruv's &nbsp;·&nbsp; No critics were harmed &nbsp;·&nbsp; He is not qualified for this</p>
+</footer>
+
+
+<script src="shows.js"></script>
+<script>
+
+// ============================================================
+// HERO ROTATING TEXTS
+// These pick one line randomly each page load.
+// ============================================================
+
+const HERO_EYEBROWS = [
+  "The Late Night Review Show Nobody Asked For",
+  "One Man. Too Many Shows. Zero Credentials.",
+  "A Review Show By A Guy With Opinions And Time",
+  "Not A Critic. Just A Guy.",
+  "Funded By: Stubbornness",
+  "Your Friend Who Watches Too Much TV",
+];
+
+const HERO_ANSWERS = [
+  "Great question. No one knows.",
+  "Something. Probably too much of it.",
+  "Ask again in 30 minutes.",
+  "None of your business. Also Derry Girls.",
+  "A good show, probably. He will tell you shortly.",
+  "Something he definitely should not have started on a weeknight.",
+];
+
+const DHRUV_STATUSES = [
+  "currently: 2 episodes in and not stopping",
+  "status: opinionated. caffeinated. willing to argue.",
+  "tonight: one more episode. definitely just one more.",
+  "qualifications: zero. opinions: many. regrets: none.",
+  "current mood: watching TV instead of touching grass",
+  "right now: taking notes on a show. like a normal person.",
+  "update: paused it to look something up. did not come back for 20 minutes.",
+];
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+
+function stars(n, max) {
+  max = max || 5;
+  return '&#9733;'.repeat(n) + '&#9734;'.repeat(max - n);
+}
+
+function renderEpCard(ep) {
+  var reviewHTML = ep.review.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+
+  return '<article class="ep-card">' +
+    '<div class="ep-num-col">' +
+      '<span class="big">' + ep.num + '</span>' +
+      '<span class="small">Episode</span>' +
+    '</div>' +
+    '<div class="ep-body-col">' +
+      '<div class="ep-head">' +
+        '<h3 class="ep-title">&ldquo;' + ep.title + '&rdquo;</h3>' +
+        '<span class="ep-stars">' + stars(ep.rating) + '</span>' +
+      '</div>' +
+      '<p class="ep-sub">aka: ' + ep.aka + '</p>' +
+      '<div class="ep-text">' +
+        reviewHTML +
+      '</div>' +
+    '</div>' +
+  '</article>';
+}
+
+function renderNowWatching(show) {
+  document.getElementById('now-watching').innerHTML =
+    '<span class="now-watching-label">&#9658; Now Reviewing</span>' +
+    '<span class="now-watching-show">' + show.title + '</span>' +
+    '<span class="now-watching-meta">' + show.season + ' &nbsp;&middot;&nbsp; ' + show.episodeRange + ' &nbsp;&middot;&nbsp; ' + show.channel + '</span>';
+}
+
+var RATING_SCALE = [
+  ['&#9733;',                 "finished it. that’s the best i can say."],
+  ['&#9733;&#9733;',          "has moments. has problems."],
+  ['&#9733;&#9733;&#9733;',   "good. not exciting me. moving on."],
+  ['&#9733;&#9733;&#9733;&#9733;',  "talked about it at breakfast. unprompted."],
+  ['&#9733;&#9733;&#9733;&#9733;&#9733;', "told Kim about it. that’s how you know it’s good."],
+];
+
+function renderRatingLegend() {
+  var rows = RATING_SCALE.map(function(r) {
+    return '<div class="rating-legend-row"><span class="stars">' + r[0] + '</span><span>' + r[1] + '</span></div>';
+  }).join('');
+  return '<div class="rating-legend">' +
+    '<div class="rating-legend-title">The Dhruv Rating Scale</div>' +
+    '<div class="rating-legend-body">' + rows + '</div>' +
+    '</div>';
+}
+
+function renderMainContent(show) {
+  var badgesHTML = show.genre.map(function(g) {
+    return '<span class="show-badge">' + g + '</span>';
+  }).join('');
+
+  var statsHTML = show.stats.map(function(s) {
+    return '<div class="stat"><span class="stat-label">' + s.label + '</span><span class="stat-val">' + s.val + '</span></div>';
+  }).join('');
+
+  var epHTML = '';
+  show.episodes.forEach(function(ep, i) {
+    epHTML += renderEpCard(ep);
+    if (i === 0) {
+      epHTML += '<div class="pull-quote"><p>&ldquo;' + show.pullQuote + '&rdquo;</p>' +
+        '<cite>' + show.pullCite + '</cite></div>';
+    }
+  });
+
+  document.getElementById('main-content').innerHTML =
+    '<div class="show-header">' +
+      '<div class="show-label-row">' +
+        '<span class="show-badge active">Current Show</span>' +
+        badgesHTML +
+      '</div>' +
+      '<h2 class="show-title-big">' + show.title + '</h2>' +
+      '<p class="show-desc">' + show.desc + '</p>' +
+      '<div class="show-stats">' + statsHTML + '</div>' +
+    '</div>' +
+    '<div class="sec-div">' +
+      '<div class="sec-div-line"></div>' +
+      '<span class="sec-div-label">Episode Reviews &mdash; ' + show.season + '</span>' +
+      '<div class="sec-div-line"></div>' +
+    '</div>' +
+    renderRatingLegend() +
+    '<div class="ep-grid" id="episodes">' + epHTML + '</div>';
+
+  setupCardAnimations();
+}
+
+function renderCTA(show) {
+  document.getElementById('cta-section').innerHTML =
+    '<div class="cta-inner">' +
+      '<span class="cta-eyebrow">Coming Soon</span>' +
+      '<h2 class="cta-q">What Is <em>Dhruv</em><br>Watching Next?</h2>' +
+      '<div class="cta-rule"></div>' +
+      '<p class="cta-body">' + show.ctaBody + '</p>' +
+      '<p class="cta-body" style="font-style:italic;">' + show.ctaSignoff + '</p>' +
+      '<p class="cta-sign">Dhruv Watches Stuff &nbsp;&middot;&nbsp; The Show Nobody Commissioned</p>' +
+    '</div>';
+}
+
+
+// ============================================================
+// BROWSE PANEL
+// ============================================================
+
+function renderBrowseGrid() {
+  var grid = document.getElementById('browse-grid');
+  var count = document.getElementById('browse-count');
+  var note  = document.getElementById('browse-note');
+
+  count.textContent = SHOWS.length + ' show' + (SHOWS.length !== 1 ? 's' : '') + ' reviewed';
+
+  var funnyNotes = [
+    "He watched all of these. Nobody made him do it.",
+    "This list will grow. Dhruv cannot stop watching things.",
+    "Every show here was watched voluntarily. Make of that what you will.",
+    "No shows were harmed in the making of these reviews. The same cannot be said for Dhruv's sleep schedule.",
+  ];
+  note.textContent = funnyNotes[Math.floor(Math.random() * funnyNotes.length)];
+
+  var cardsHTML = SHOWS.slice().reverse().map(function(s) {
+    var total = s.episodes.reduce(function(sum, ep) { return sum + ep.rating; }, 0);
+    var avg   = (total / s.episodes.length).toFixed(1);
+    var rounded = Math.round(parseFloat(avg));
+    var starsStr = '&#9733;'.repeat(rounded) + '&#9734;'.repeat(5 - rounded);
+    var genresHTML = s.genre.map(function(g) {
+      return '<span class="browse-genre-tag">' + g + '</span>';
+    }).join('');
+    var isLive = s.status === 'current';
+
+    return '<div class="browse-card' + (s.id === currentShowId ? ' is-current' : '') + '" data-id="' + s.id + '" onclick="selectShow(\'' + s.id + '\')">' +
+      '<span class="browse-card-status' + (isLive ? ' live' : '') + '">' + (isLive ? 'Now Reviewing' : 'Reviewed') + '</span>' +
+      '<div class="browse-card-title">' + s.title + '</div>' +
+      '<div class="browse-card-meta">' + s.season + ' &middot; ' + s.episodeRange + ' &middot; ' + s.channel + '</div>' +
+      '<div class="browse-card-genres">' + genresHTML + '</div>' +
+      '<p class="browse-card-take">&ldquo;' + s.browseOneLiner + '&rdquo;</p>' +
+      '<div class="browse-card-rating">' + starsStr + '<span class="avg">' + avg + ' avg</span></div>' +
+    '</div>';
+  }).join('');
+
+  // Coming soon placeholders to fill the grid
+  var placeholders = [
+    "Dhruv is watching something. He’ll tell you when he’s ready.",
+    "Something is queued. Might be good. Might not. TBD.",
+  ].map(function(msg) {
+    return '<div class="browse-card browse-card-soon"><p>Coming Soon<br><br>' + msg + '</p></div>';
+  }).join('');
+
+  grid.innerHTML = cardsHTML + placeholders;
+}
+
+function openBrowse() {
+  renderBrowseGrid();
+  var panel = document.getElementById('browse');
+  panel.removeAttribute('hidden');
+  document.body.style.overflow = 'hidden';
+  panel.focus();
+}
+
+function closeBrowse() {
+  document.getElementById('browse').setAttribute('hidden', '');
+  document.body.style.overflow = '';
+}
+
+function selectShow(id) {
+  var show = SHOWS.find(function(s) { return s.id === id; });
+  if (!show) return;
+  currentShowId = show.id;
+  closeBrowse();
+  renderNowWatching(show);
+  renderMainContent(show);
+  renderCTA(show);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeBrowse();
+});
+
+
+// ============================================================
+// CARD SCROLL ANIMATION
+// ============================================================
+
+function setupCardAnimations() {
+  var cards = document.querySelectorAll('.ep-card');
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e, i) {
+      if (e.isIntersecting) {
+        setTimeout(function() { e.target.classList.add('visible'); }, i * 100);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  cards.forEach(function(c) { obs.observe(c); });
+}
+
+
+// ============================================================
+// INIT
+// ============================================================
+
+var currentShowId = SHOWS[SHOWS.length - 1].id;
+
+(function init() {
+  // Rotating hero text
+  document.getElementById('hero-eyebrow').textContent  = pick(HERO_EYEBROWS);
+  document.getElementById('hero-answer').textContent   = pick(HERO_ANSWERS);
+  document.getElementById('dhruv-status').textContent  = pick(DHRUV_STATUSES);
+
+  // Render current show
+  var show = SHOWS[SHOWS.length - 1];
+  renderNowWatching(show);
+  renderMainContent(show);
+  renderCTA(show);
+})();
+
+</script>
+</body>
+</html>
